@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: payment-orders-solid
+  mvc:
+    problemdetails:
+      enabled: true
+  jackson:
+    default-property-inclusion: non_null
+
+# Business policy lives in configuration, so changing a limit or allowing a
+# new currency never means editing a rule class (Open/Closed).
+payments:
+  policy:
+    max-amount:
+      sepa-credit-transfer: 100000
+      card: 5000
+      wallet: 2000
+    allowed-currencies:
+      sepa-credit-transfer: [EUR]
+      card: [EUR, USD, GBP]
+      wallet: [EUR]

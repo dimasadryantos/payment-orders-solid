@@ -1,0 +1,55 @@
+### 1. Create a card payment
+POST http://localhost:8080/api/v1/payment-orders
+Content-Type: application/json
+
+{
+  "debtorAccount": "DE89370400440532013000",
+  "creditorAccount": "DE75512108001245126199",
+  "amount": 100.00,
+  "currency": "EUR",
+  "method": "CARD",
+  "reference": "Invoice 2026-001"
+}
+
+> {% client.global.set("orderId", response.body.id); %}
+
+### 2. Execute it (SETTLED, fee 1.65)
+POST http://localhost:8080/api/v1/payment-orders/{{orderId}}/execute
+
+### 3. Read it
+GET http://localhost:8080/api/v1/payment-orders/{{orderId}}
+
+### 4. Refund it (works for CARD and WALLET)
+POST http://localhost:8080/api/v1/payment-orders/{{orderId}}/refund
+
+### 5. Execute again: 409, the order is no longer CREATED
+POST http://localhost:8080/api/v1/payment-orders/{{orderId}}/execute
+
+### 6. SEPA in USD: 422, rejected by AllowedCurrencyRule
+POST http://localhost:8080/api/v1/payment-orders
+Content-Type: application/json
+
+{
+  "debtorAccount": "DE89370400440532013000",
+  "creditorAccount": "DE75512108001245126199",
+  "amount": 10.00,
+  "currency": "USD",
+  "method": "SEPA_CREDIT_TRANSFER"
+}
+
+### 7. Wallet above the simulated balance: created, then FAILED on execute
+POST http://localhost:8080/api/v1/payment-orders
+Content-Type: application/json
+
+{
+  "debtorAccount": "DE89370400440532013000",
+  "creditorAccount": "DE75512108001245126199",
+  "amount": 1500.00,
+  "currency": "EUR",
+  "method": "WALLET"
+}
+
+> {% client.global.set("walletOrderId", response.body.id); %}
+
+### 8.
+POST http://localhost:8080/api/v1/payment-orders/{{walletOrderId}}/execute
